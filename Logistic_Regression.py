@@ -24,7 +24,7 @@ def split_data_set():
 
 def model_training():
     print("start training the model")
-    for i in range(0, 100000):
+    for i in range(0, 10000):
         sess.run(update, feed_dict={x: train_data_x, y_: train_data_y})
     print("finish training the model")
     print("w:", sess.run(W), " b:", sess.run(b), " loss:",
