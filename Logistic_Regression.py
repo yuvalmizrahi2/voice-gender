@@ -5,7 +5,7 @@ import tensorflow as tf
 
 def read_data_set():
     print("start reading the data set")
-    data_set = pd.read_csv('voice.csv')
+    data_set = pd.read_csv('voice-gender dataset.csv')
     data_set.label = data_set.label.replace(to_replace=['male', 'female'], value=[0, 1])
     data_set = data_set.sample(frac=1).reset_index(drop=True)
     print("finish reading the data set")
