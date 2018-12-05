@@ -24,7 +24,7 @@ def split_data_set():
 
 def model_training():
     print("start training the model")
-    for i in range(0, 5000):
+    for i in range(0, 10000):
         sess.run(train_op, feed_dict={x: train_data_x, y_: train_data_y})
         loss, _, acc = sess.run([loss_op, train_op, accuracy], feed_dict={
             x: train_data_x, y_: train_data_y})
@@ -48,7 +48,7 @@ x = tf.placeholder(tf.float32, [None, features])
 y_ = tf.placeholder(tf.float32, [None, 1])
 
 # Construct model
-number_of_neurons_each_layer = [features, 256, 256, 256, 20, 1]
+number_of_neurons_each_layer = [features, 20, 40, 40, 4, 1]
 input_into_hidden_layers = [x]
 for i, hidden_size in enumerate(number_of_neurons_each_layer):
         if i == len(number_of_neurons_each_layer):
