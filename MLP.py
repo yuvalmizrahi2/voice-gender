@@ -32,13 +32,12 @@ def model_training():
             print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
                 i, loss, acc))
     print("finish training the model")
-    # print("w:", sess.run(W), " b:", sess.run(b), " loss:",
-    #       loss_op.eval(session=sess, feed_dict={x: train_data_x, y_: train_data_y}))
 
 
 def model_testing():
     print("start testing the model")
-    print("accuracy: ", sess.run([accuracy, tf.round(logits)], feed_dict={x: test_data_x, y_: test_data_y})[0])
+    loss, _, acc = sess.run([loss_op, tf.round(logits), accuracy], feed_dict={x: test_data_x, y_: test_data_y})
+    print("Loss: {:.3f}\tAccuracy: {:.2%}".format(loss, acc))
 
 
 voice = read_data_set()
