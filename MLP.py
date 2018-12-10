@@ -47,15 +47,15 @@ x = tf.placeholder(tf.float32, [None, features])
 y_ = tf.placeholder(tf.float32, [None, 1])
 
 # Construct model
-number_of_neurons_each_layer = [features, 20, 40, 40, 4, 1]
-input_into_hidden_layers = [x]
-for i, hidden_size in enumerate(number_of_neurons_each_layer):
-        if i == len(number_of_neurons_each_layer):
-            nn = tf.layers.dense(input_into_hidden_layers[i], hidden_size, activation=None)
+number_of_neurons = [features, 20, 40, 40, 4, 1]
+input_layers = [x]
+for i, hidden_size in enumerate(number_of_neurons):
+        if i == len(number_of_neurons):
+            hidden_layer = tf.layers.dense(input_layers[i], hidden_size, activation=None)
         else:
-            nn = tf.layers.dense(input_into_hidden_layers[i], hidden_size, activation=tf.nn.relu)
-        input_into_hidden_layers.append(nn)
-logits = input_into_hidden_layers[len(number_of_neurons_each_layer)]
+            hidden_layer = tf.layers.dense(input_layers[i], hidden_size, activation=tf.nn.relu)
+        input_layers.append(hidden_layer)
+logits = input_layers[len(number_of_neurons)]
 
 # Define loss and optimizer
 cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=y_)
