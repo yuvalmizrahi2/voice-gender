@@ -25,19 +25,20 @@ def split_data_set():
 def model_training():
     print("start training the model")
     for i in range(0, 10000):
-        sess.run(train_op, feed_dict={x: train_data_x, y_: train_data_y})
-        loss, _, acc = sess.run([loss_op, train_op, accuracy], feed_dict={
-            x: train_data_x, y_: train_data_y})
-        if i % 500 == 0:
-            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
-                i, loss, acc))
+        _, curr_train_acc, curr_loss = sess.run([train_op, acc_trace, loss_trace],
+                                                feed_dict={x: train_data_x, y_: train_data_y})
+        file_writer1.add_summary(curr_train_acc, i)
+        file_writer3.add_summary(curr_loss, i)
+        curr_test_acc = sess.run(acc_trace, feed_dict={x: test_data_x, y_: test_data_y})
+        file_writer2.add_summary(curr_test_acc, i)
     print("finish training the model")
+    loss, _, acc = sess.run([loss_op, train_op, accuracy], feed_dict={
+        x: train_data_x, y_: train_data_y})
+    print("loss:",loss, "\taccuracy: ", acc)
 
 
 def model_testing():
-    print("start testing the model")
-    loss, _, acc = sess.run([loss_op, tf.round(logits), accuracy], feed_dict={x: test_data_x, y_: test_data_y})
-    print("Loss: {:.3f}\tAccuracy: {:.2%}".format(loss, acc))
+    print("test accuracy: ", sess.run(accuracy, feed_dict={x: test_data_x, y_: test_data_y}))
 
 
 voice = read_data_set()
@@ -70,7 +71,13 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 # Initializing the variables
 init = tf.global_variables_initializer()
 
+acc_trace = tf.summary.scalar('accuracy', accuracy)
+loss_trace = tf.summary.scalar('loss', loss_op)
+
 with tf.Session() as sess:
+    file_writer1 = tf.summary.FileWriter('MLP/train', sess.graph)
+    file_writer2 = tf.summary.FileWriter('MLP/test', sess.graph)
+    file_writer3 = tf.summary.FileWriter('MLP/loss', sess.graph)
     sess.run(init)
     model_training()
     model_testing()
