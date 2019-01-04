@@ -71,6 +71,7 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 # Initializing the variables
 init = tf.global_variables_initializer()
 
+# Initializing the tensorboard
 acc_trace = tf.summary.scalar('accuracy', accuracy)
 loss_trace = tf.summary.scalar('loss', loss_op)
 
