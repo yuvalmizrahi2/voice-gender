@@ -68,10 +68,10 @@ with tf.Session() as sess:
         for i in range(147):
             batch_xs=train_data_x[i]
             batch_ys=train_data_y[i]
-            sess.run([train_step, acc_trace, loss_trace], feed_dict={x: batch_xs, y: batch_ys})
+            _, curr_loss = sess.run([train_step, cross_entropy], feed_dict={x: batch_xs, y: batch_ys})
             acc += accuracy.eval(feed_dict={x: batch_xs, y: batch_ys})
             tr = tr+1
-        print("step %d, training accuracy %g"%(ephoch, acc/tr))
+        print("step %d, loss %g, training accuracy %g"%(ephoch, curr_loss, acc/tr))
     acc = 0
     tr = 0
     for i in range(64):
