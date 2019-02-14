@@ -25,38 +25,21 @@ def split_data_set():
 def model_training():
     print("start training the model")
     for i in range(0, 10000):
-        sess.run(update, feed_dict={x: train_data_x, y_: train_data_y})
+        _, curr_train_acc, curr_loss = sess.run([update, acc_trace, loss_trace], feed_dict={x: train_data_x, y_: train_data_y})
+        file_writer1.add_summary(curr_train_acc, i)
+        file_writer3.add_summary(curr_loss, i)
+        curr_test_acc = sess.run(acc_trace, feed_dict={x: test_data_x, y_: test_data_y})
+        file_writer2.add_summary(curr_test_acc, i)
     print("finish training the model")
-    print("w:", sess.run(W), " b:", sess.run(b), " loss:",
-          loss.eval(session=sess, feed_dict={x: train_data_x, y_: train_data_y}))
+    loss2, _, acc = sess.run([loss, update, accuracy], feed_dict={
+        x: train_data_x, y_: train_data_y})
+    print("w:", sess.run(W), "\tb:", sess.run(b), "\tloss:",
+          loss.eval(session=sess, feed_dict={x: train_data_x, y_: train_data_y})
+          , "\taccuracy: " ,acc)
 
 
 def model_testing():
-    print("start testing the model")
-    tp = 0
-    fn = 0
-    tn = 0
-    fp = 0
-    for i in range(test_data_x.shape[0]):
-        result = sess.run(tf.nn.sigmoid(((np.matmul(np.array([test_data_x[i]]), sess.run(W))) + sess.run(b))[0][0]))
-        real = test_data_y[i][0]
-        if result >= 0.5 and real == 1:
-            tp += 1
-        if result < 0.5 and real == 0:
-            tn += 1
-        if result >= 0.5 and real == 0:
-            fp += 1
-        if result < 0.5 and real == 1:
-            fn += 1
-    acc = (tp + tn) / (tp + tn + fn + fp)
-    pre = tp / (tp + fp)
-    rec = tp / (tp + fn)
-    fm = 2 * pre * rec / (pre + rec)
-    print("finish testing the model")
-    print("the accuracy of the model:", acc)
-    print("the recall of the model:" , rec)
-    print("the precision of the model:" , pre)
-    print("the F-measure of the model:" , fm)
+    print("test accuracy: ", sess.run(accuracy, feed_dict={x: test_data_x, y_: test_data_y}))
 
 
 voice = read_data_set()
@@ -70,7 +53,19 @@ y = tf.nn.sigmoid(tf.matmul(x,W) + b)
 loss1 = tf.nn.sigmoid_cross_entropy_with_logits(labels=y_ ,logits=y)
 loss = tf.reduce_mean(loss1)
 update = tf.train.AdamOptimizer().minimize(loss)
-sess = tf.Session()
-sess.run(tf.global_variables_initializer())
-model_training()
-model_testing()
+prediction = tf.round(tf.sigmoid(tf.matmul(x,W) + b))
+correct = tf.cast(tf.equal(prediction, y_), dtype=tf.float32)
+accuracy = tf.reduce_mean(correct)
+init = tf.global_variables_initializer()
+acc_trace = tf.summary.scalar('accuracy', accuracy)
+loss_trace = tf.summary.scalar('loss', loss)
+with tf.Session() as sess:
+    file_writer1 = tf.summary.FileWriter('Logistic Regression/train', sess.graph)
+    file_writer2 = tf.summary.FileWriter('Logistic Regression/test', sess.graph)
+    file_writer3 = tf.summary.FileWriter('Logistic Regression/loss', sess.graph)
+    sess.run(init)
+    model_training()
+    model_testing()
+
+file_writer1.close()
+file_writer2.close()

@@ -25,20 +25,20 @@ def split_data_set():
 def model_training():
     print("start training the model")
     for i in range(0, 10000):
-        sess.run(train_op, feed_dict={x: train_data_x, y_: train_data_y})
-        loss, _, acc = sess.run([loss_op, train_op, accuracy], feed_dict={
-            x: train_data_x, y_: train_data_y})
-        if i % 500 == 0:
-            print("Step: {:5}\tLoss: {:.3f}\tAcc: {:.2%}".format(
-                i, loss, acc))
+        _, curr_train_acc, curr_loss = sess.run([train_op, acc_trace, loss_trace],
+                                                feed_dict={x: train_data_x, y_: train_data_y})
+        file_writer1.add_summary(curr_train_acc, i)
+        file_writer3.add_summary(curr_loss, i)
+        curr_test_acc = sess.run(acc_trace, feed_dict={x: test_data_x, y_: test_data_y})
+        file_writer2.add_summary(curr_test_acc, i)
     print("finish training the model")
-    # print("w:", sess.run(W), " b:", sess.run(b), " loss:",
-    #       loss_op.eval(session=sess, feed_dict={x: train_data_x, y_: train_data_y}))
+    loss, _, acc = sess.run([loss_op, train_op, accuracy], feed_dict={
+        x: train_data_x, y_: train_data_y})
+    print("loss:",loss, "\taccuracy: ", acc)
 
 
 def model_testing():
-    print("start testing the model")
-    print("accuracy: ", sess.run([accuracy, tf.round(logits)], feed_dict={x: test_data_x, y_: test_data_y})[0])
+    print("test accuracy: ", sess.run(accuracy, feed_dict={x: test_data_x, y_: test_data_y}))
 
 
 voice = read_data_set()
@@ -48,15 +48,15 @@ x = tf.placeholder(tf.float32, [None, features])
 y_ = tf.placeholder(tf.float32, [None, 1])
 
 # Construct model
-number_of_neurons_each_layer = [features, 20, 40, 40, 4, 1]
-input_into_hidden_layers = [x]
-for i, hidden_size in enumerate(number_of_neurons_each_layer):
-        if i == len(number_of_neurons_each_layer):
-            nn = tf.layers.dense(input_into_hidden_layers[i], hidden_size, activation=None)
+number_of_neurons = [features, 20, 40, 40, 4, 1]
+input_layers = [x]
+for i, hidden_size in enumerate(number_of_neurons):
+        if i == len(number_of_neurons):
+            hidden_layer = tf.layers.dense(input_layers[i], hidden_size, activation=None)
         else:
-            nn = tf.layers.dense(input_into_hidden_layers[i], hidden_size, activation=tf.nn.relu)
-        input_into_hidden_layers.append(nn)
-logits = input_into_hidden_layers[len(number_of_neurons_each_layer)]
+            hidden_layer = tf.layers.dense(input_layers[i], hidden_size, activation=tf.nn.relu)
+        input_layers.append(hidden_layer)
+logits = input_layers[len(number_of_neurons)]
 
 # Define loss and optimizer
 cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=logits, labels=y_)
@@ -71,7 +71,14 @@ accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 # Initializing the variables
 init = tf.global_variables_initializer()
 
+# Initializing the tensorboard
+acc_trace = tf.summary.scalar('accuracy', accuracy)
+loss_trace = tf.summary.scalar('loss', loss_op)
+
 with tf.Session() as sess:
+    file_writer1 = tf.summary.FileWriter('MLP/train', sess.graph)
+    file_writer2 = tf.summary.FileWriter('MLP/test', sess.graph)
+    file_writer3 = tf.summary.FileWriter('MLP/loss', sess.graph)
     sess.run(init)
     model_training()
     model_testing()
